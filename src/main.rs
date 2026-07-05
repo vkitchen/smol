@@ -82,15 +82,20 @@ fn search(query: String) -> Result<SearchResponse, binrw::Error> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     let app = Router::new()
-        .route("/", get(root_handler))
+        .route("/", get(index_handler))
         .route("/search", get(search_handler));
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn root_handler() -> Html<&'static str> {
-    Html(INDEX_HTML)
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexTemplate;
+
+async fn index_handler() -> impl IntoResponse {
+    let template = IndexTemplate;
+    HtmlTemplate(template)
 }
 
 #[derive(Deserialize)]
@@ -115,26 +120,6 @@ async fn search_handler(Query(params): Query<Params>) -> impl IntoResponse {
     };
     HtmlTemplate(template)
 }
-
-static INDEX_HTML: &str = r#"
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>smol</title>
-  </head>
-  <body>
-    <main>
-      <h1>smol</h1>
-      <form action="/search" method="get">
-        <input type="text" name="q" placeholder="Search...">
-        <input type="submit" value="Search">
-      </form>
-    </main>
-  </body>
-</html>
-"#;
 
 struct HtmlTemplate<T>(T);
 
