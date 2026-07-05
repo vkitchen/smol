@@ -1,4 +1,4 @@
-use binrw::{BinRead, binread, BinWrite, binwrite};
+use binrw::{BinRead, BinWrite, binread, binwrite};
 use std::io::Cursor;
 use std::io::prelude::*;
 use std::os::unix::net::UnixStream;

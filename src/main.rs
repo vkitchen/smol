@@ -2,11 +2,11 @@ mod cocomel;
 
 use askama::Template;
 use axum::{
+    Router,
     extract::Query,
     http::StatusCode,
     response::{Html, IntoResponse, Response},
     routing::get,
-    Router,
 };
 use serde::Deserialize;
 
@@ -16,7 +16,9 @@ async fn main() {
         .route("/", get(index_handler))
         .route("/search", get(search_handler));
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+        .await
+        .unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
@@ -45,7 +47,7 @@ struct ResultsTemplate {
 
 async fn search_handler(Query(params): Query<Params>) -> impl IntoResponse {
     let search_results = cocomel::search(&params.q, 10, 0).unwrap();
-    let template = ResultsTemplate{
+    let template = ResultsTemplate {
         query: params.q,
         total_results: search_results.total_results,
         no_results: search_results.no_results,
@@ -56,7 +58,10 @@ async fn search_handler(Query(params): Query<Params>) -> impl IntoResponse {
 
 struct HtmlTemplate<T>(T);
 
-impl<T> IntoResponse for HtmlTemplate<T> where T: Template, {
+impl<T> IntoResponse for HtmlTemplate<T>
+where
+    T: Template,
+{
     fn into_response(self) -> Response {
         match self.0.render() {
             Ok(html) => Html(html).into_response(),
@@ -64,7 +69,7 @@ impl<T> IntoResponse for HtmlTemplate<T> where T: Template, {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Failed to render template. Error: {err}"),
             )
-            .into_response(),
+                .into_response(),
         }
     }
 }
