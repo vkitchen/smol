@@ -1,3 +1,5 @@
+mod cocomel;
+
 use askama::Template;
 use axum::{
     extract::Query,
@@ -6,78 +8,7 @@ use axum::{
     routing::get,
     Router,
 };
-use binrw::{BinRead, binread, BinWrite, binwrite};
 use serde::Deserialize;
-use std::io::Cursor;
-use std::io::prelude::*;
-use std::os::unix::net::UnixStream;
-
-#[binwrite]
-#[bw(little)]
-struct SearchRequest {
-    version: u8,
-    command: u8,
-    no_results: u16,
-    offset: u16,
-
-    #[bw(calc = query.len() as u16)]
-    query_len: u16,
-    #[bw(map = |s: &String| s.as_bytes())]
-    query: String,
-}
-
-#[allow(unused)]
-#[binread]
-#[br(little)]
-struct SearchResult {
-    docid_len: u16,
-    #[br(count = docid_len, try_map = |bytes: Vec<u8>| String::from_utf8(bytes))]
-    docid: String,
-
-    title_len: u16,
-    #[br(count = title_len, try_map = |bytes: Vec<u8>| String::from_utf8(bytes))]
-    title: String,
-
-    snippet_len: u16,
-    #[br(count = snippet_len, try_map = |bytes: Vec<u8>| String::from_utf8(bytes))]
-    snippet: String,
-}
-
-#[allow(unused)]
-#[binread]
-#[br(little)]
-struct SearchResponse {
-    version: u8,
-    command: u8,
-    total_results: u16,
-    no_results: u16,
-    #[br(count = no_results)]
-    results: Vec<SearchResult>,
-}
-
-fn search(query: String) -> Result<SearchResponse, binrw::Error> {
-    let mut stream = UnixStream::connect("/tmp/cocomel.sock")?;
-
-    let req = SearchRequest {
-        version: 0,
-        command: 1, // search
-        no_results: 10,
-        offset: 0,
-        query: query,
-    };
-
-    let mut send_buf = Cursor::new(Vec::new());
-    req.write(&mut send_buf)?;
-
-    let req_bytes = send_buf.into_inner();
-    stream.write_all(&req_bytes)?;
-
-    let mut recv_buf = Vec::new();
-    stream.read_to_end(&mut recv_buf)?;
-
-    let mut recv_cursor = Cursor::new(recv_buf);
-    Ok(SearchResponse::read(&mut recv_cursor)?)
-}
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -108,11 +39,11 @@ struct Params {
 struct ResultsTemplate {
     total_results: u16,
     no_results: u16,
-    results: Vec<SearchResult>,
+    results: Vec<cocomel::SearchResult>,
 }
 
 async fn search_handler(Query(params): Query<Params>) -> impl IntoResponse {
-    let search_results = search(params.q).unwrap();
+    let search_results = cocomel::search(params.q).unwrap();
     let template = ResultsTemplate{
         total_results: search_results.total_results,
         no_results: search_results.no_results,
