@@ -24,10 +24,13 @@ async fn main() {
 
 #[derive(Template)]
 #[template(path = "index.html")]
-struct IndexTemplate;
+struct IndexTemplate {
+    total_docs: u32,
+}
 
 async fn index_handler() -> impl IntoResponse {
-    let template = IndexTemplate;
+    let info_result = cocomel::info().unwrap();
+    let template = IndexTemplate { total_docs: info_result.total_docs };
     HtmlTemplate(template)
 }
 

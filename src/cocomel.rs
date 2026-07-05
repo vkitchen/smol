@@ -5,6 +5,43 @@ use std::os::unix::net::UnixStream;
 
 #[binwrite]
 #[bw(little)]
+struct InfoRequest {
+    version: u8,
+    command: u8,
+}
+
+#[allow(unused)]
+#[binread]
+#[br(little)]
+pub struct InfoResponse {
+    version: u8,
+    command: u8,
+    pub total_docs: u32,
+}
+
+pub fn info() -> Result<InfoResponse, binrw::Error> {
+    let mut stream = UnixStream::connect("/tmp/cocomel.sock")?;
+
+    let req = InfoRequest {
+        version: 1,
+        command: 2, // info
+    };
+
+    let mut send_buf = Cursor::new(Vec::new());
+    req.write(&mut send_buf)?;
+
+    let req_bytes = send_buf.into_inner();
+    stream.write_all(&req_bytes)?;
+
+    let mut recv_buf = Vec::new();
+    stream.read_to_end(&mut recv_buf)?;
+
+    let mut recv_cursor = Cursor::new(recv_buf);
+    Ok(InfoResponse::read(&mut recv_cursor)?)
+}
+
+#[binwrite]
+#[bw(little)]
 struct SearchRequest<'a> {
     version: u8,
     command: u8,
@@ -50,8 +87,8 @@ pub fn search(query: &str, results: usize, page: usize) -> Result<SearchResponse
     let mut stream = UnixStream::connect("/tmp/cocomel.sock")?;
 
     let req = SearchRequest {
-        version: 0,
-        command: 1, // search
+        version: 1,
+        command: 3, // search
         no_results: results as u16,
         offset: (page * results) as u16,
         query: query,
