@@ -15,7 +15,8 @@
     <main>
       <h4>Showing {{ no_results }} of {{ total_results }}</h4>
       {% for res in results %}
-      <p>{{ res.docid }}</p>
+      <p><a href="{{ res.docid }}">{{ res.docid }}</a></p>
+      <p>{{ res.title }}</p>
       <p>{{ res.snippet | safe }}</p>
       {% endfor %}
     </main>
