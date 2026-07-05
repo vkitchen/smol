@@ -46,14 +46,14 @@ pub struct SearchResponse {
     pub results: Vec<SearchResult>,
 }
 
-pub fn search(query: String) -> Result<SearchResponse, binrw::Error> {
+pub fn search(query: String, results: usize, page: usize) -> Result<SearchResponse, binrw::Error> {
     let mut stream = UnixStream::connect("/tmp/cocomel.sock")?;
 
     let req = SearchRequest {
         version: 0,
         command: 1, // search
-        no_results: 10,
-        offset: 0,
+        no_results: results as u16,
+        offset: (page * results) as u16,
         query: query,
     };
 

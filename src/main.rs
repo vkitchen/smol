@@ -43,7 +43,7 @@ struct ResultsTemplate {
 }
 
 async fn search_handler(Query(params): Query<Params>) -> impl IntoResponse {
-    let search_results = cocomel::search(params.q).unwrap();
+    let search_results = cocomel::search(params.q, 10, 0).unwrap();
     let template = ResultsTemplate{
         total_results: search_results.total_results,
         no_results: search_results.no_results,
