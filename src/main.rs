@@ -1,4 +1,5 @@
 use binrw::{BinRead, binread, BinWrite, binwrite};
+use std::io;
 use std::io::Cursor;
 use std::io::prelude::*;
 use std::os::unix::net::UnixStream;
@@ -17,8 +18,8 @@ struct Request {
     query: String,
 }
 
+#[allow(unused)]
 #[binread]
-#[derive(Debug)]
 #[br(little)]
 struct Result {
     docid_len: u16,
@@ -34,8 +35,8 @@ struct Result {
     snippet: String,
 }
 
+#[allow(unused)]
 #[binread]
-#[derive(Debug)]
 #[br(little)]
 struct Response {
     version: u8,
@@ -49,12 +50,18 @@ struct Response {
 fn main() -> binrw::BinResult<()> {
     let mut stream = UnixStream::connect("/tmp/cocomel.sock")?;
 
+    print!("Query> ");
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+
     let req = Request {
         version: 0,
         command: 1, // search
         no_results: 10,
         offset: 0,
-        query: "test".to_string(),
+        query: input,
     };
 
     let mut send_buf = Cursor::new(Vec::new());
@@ -67,8 +74,15 @@ fn main() -> binrw::BinResult<()> {
     stream.read_to_end(&mut recv_buf)?;
 
     let mut recv_cursor = Cursor::new(recv_buf);
-    let res = Response::read(&mut recv_cursor)?;
-    println!("{:?}", res);
+    let response = Response::read(&mut recv_cursor)?;
+
+    println!("Showing {} of {}", response.no_results, response.total_results);
+    println!();
+    for res in &response.results {
+        println!("{}", res.docid);
+        println!("{}", res.snippet);
+        println!();
+    }
 
     Ok(())
 }
