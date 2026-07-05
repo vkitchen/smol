@@ -7,29 +7,34 @@
   </head>
   <body>
     <header>
+      <a href="/">smol</a>
       <form class="search" action="/search" method="get">
         <input type="text" name="q" placeholder="Search..." value="{{ query }}">
         <input type="submit" value="Search">
       </form>
     </header>
     <main>
-      <h4>Showing {{ (page - 1) * 10 + 1 }} - {{ (page - 1) * 10 + no_results }} of {{ total_results }}</h4>
-      {% for res in results %}
-      <p><a href="{{ res.docid }}">{{ res.docid }}</a></p>
-      <p>{{ res.title }}</p>
-      <p>{{ res.snippet | safe }}</p>
-      {% endfor %}
-      <p>Page:
-      {% if page > 1 %}
-      <a href="?q={{ query | urlencode }}&page={{ page - 1 }}">Previous</a href>
+      {% if total_results == 0 %}
+        <p>No results</p>
+      {% else %}
+        <h4>Showing {{ (page - 1) * 10 + 1 }} - {{ (page - 1) * 10 + no_results }} of {{ total_results }}</h4>
+        {% for res in results %}
+          <p><a href="{{ res.docid }}">{{ res.docid }}</a></p>
+          <p>{{ res.title }}</p>
+          <p>{{ res.snippet | safe }}</p>
+        {% endfor %}
+        <p>Page:
+        {% if page > 1 %}
+          <a href="?q={{ query | urlencode }}&page={{ page - 1 }}">Previous</a href>
+        {% endif %}
+        {% for i in 1..=(total_results + 9) / 10  %}
+          <a href="?q={{ query | urlencode }}&page={{ i }}">{{ i }}</a href>
+        {% endfor %}
+        {% if page * 10 < total_results %}
+          <a href="?q={{ query | urlencode }}&page={{ page + 1 }}">Next</a href>
+        {% endif %}
+        </p>
       {% endif %}
-      {% for i in 1..=(total_results + 9) / 10  %}
-      <a href="?q={{ query | urlencode }}&page={{ i }}">{{ i }}</a href>
-      {% endfor %}
-      {% if page * 10 < total_results %}
-      <a href="?q={{ query | urlencode }}&page={{ page + 1 }}">Next</a href>
-      {% endif %}
-      </p>
     </main>
   </body>
 </html>
