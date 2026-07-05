@@ -49,10 +49,16 @@ struct ResultsTemplate {
 
 async fn search_handler(Query(params): Query<Params>) -> impl IntoResponse {
     let page = match params.page {
-        Some(page) => if page == 0 { 0 } else { page - 1 },
-        _ => 0,
+        Some(page) => {
+            if page == 0 {
+                1
+            } else {
+                page
+            }
+        }
+        _ => 1,
     };
-    let search_results = cocomel::search(&params.q, 10, page).unwrap();
+    let search_results = cocomel::search(&params.q, 10, page - 1).unwrap();
     let template = ResultsTemplate {
         query: params.q,
         page: page,
