@@ -37,14 +37,16 @@ struct Params {
 #[derive(Template)]
 #[template(path = "results.html")]
 struct ResultsTemplate {
+    query: String,
     total_results: u16,
     no_results: u16,
     results: Vec<cocomel::SearchResult>,
 }
 
 async fn search_handler(Query(params): Query<Params>) -> impl IntoResponse {
-    let search_results = cocomel::search(params.q, 10, 0).unwrap();
+    let search_results = cocomel::search(&params.q, 10, 0).unwrap();
     let template = ResultsTemplate{
+        query: params.q,
         total_results: search_results.total_results,
         no_results: search_results.no_results,
         results: search_results.results,

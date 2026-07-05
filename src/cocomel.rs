@@ -5,7 +5,7 @@ use std::os::unix::net::UnixStream;
 
 #[binwrite]
 #[bw(little)]
-struct SearchRequest {
+struct SearchRequest<'a> {
     version: u8,
     command: u8,
     no_results: u16,
@@ -13,8 +13,8 @@ struct SearchRequest {
 
     #[bw(calc = query.len() as u16)]
     query_len: u16,
-    #[bw(map = |s: &String| s.as_bytes())]
-    query: String,
+    #[bw(map = |&s| s.as_bytes())]
+    query: &'a str,
 }
 
 #[allow(unused)]
@@ -46,7 +46,7 @@ pub struct SearchResponse {
     pub results: Vec<SearchResult>,
 }
 
-pub fn search(query: String, results: usize, page: usize) -> Result<SearchResponse, binrw::Error> {
+pub fn search(query: &str, results: usize, page: usize) -> Result<SearchResponse, binrw::Error> {
     let mut stream = UnixStream::connect("/tmp/cocomel.sock")?;
 
     let req = SearchRequest {
