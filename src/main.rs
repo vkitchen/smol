@@ -34,23 +34,30 @@ async fn index_handler() -> impl IntoResponse {
 #[derive(Deserialize)]
 struct Params {
     q: String,
+    page: Option<usize>,
 }
 
 #[derive(Template)]
 #[template(path = "results.html")]
 struct ResultsTemplate {
     query: String,
-    total_results: u16,
-    no_results: u16,
+    page: usize,
+    total_results: usize,
+    no_results: usize,
     results: Vec<cocomel::SearchResult>,
 }
 
 async fn search_handler(Query(params): Query<Params>) -> impl IntoResponse {
-    let search_results = cocomel::search(&params.q, 10, 0).unwrap();
+    let page = match params.page {
+        Some(page) => if page == 0 { 0 } else { page - 1 },
+        _ => 0,
+    };
+    let search_results = cocomel::search(&params.q, 10, page).unwrap();
     let template = ResultsTemplate {
         query: params.q,
-        total_results: search_results.total_results,
-        no_results: search_results.no_results,
+        page: page,
+        total_results: search_results.total_results as usize,
+        no_results: search_results.no_results as usize,
         results: search_results.results,
     };
     HtmlTemplate(template)
