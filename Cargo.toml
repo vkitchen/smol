@@ -4,4 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+askama = "0.16.0"
+axum = "0.8.9"
 binrw = "0.15.1"
+serde = { version = "1.0.228", features = ["derive"] }
+tokio = "1.52.3"

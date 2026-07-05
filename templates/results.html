@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" class="[scrollbar-gutter:stable]">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>smol</title>
+  </head>
+  <body>
+    <header>
+      <form class="search" action="/search" method="get">
+        <input type="text" name="q" placeholder="Search...">
+        <input type="submit" value="Search">
+      </form>
+    </header>
+    <main>
+      <h4>Showing {{ no_results }} of {{ total_results }}</h4>
+      {% for res in results %}
+      <p>{{ res.docid }}</p>
+      <p>{{ res.snippet | safe }}</p>
+      {% endfor %}
+    </main>
+  </body>
+</html>
