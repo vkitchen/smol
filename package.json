@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "@picocss/pico": "^2.1.1",
+    "sass": "^1.101.0"
+  },
+  "scripts": {
+    "build:css": "sass --load-path=node_modules assets/scss/main.scss static/main.css",
+    "watch:css": "sass --load-path=node_modules --watch assets/scss/main.scss static/main.css"
+  }
+}

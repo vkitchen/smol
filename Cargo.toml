@@ -9,3 +9,5 @@ axum = "0.8.9"
 binrw = "0.15.1"
 serde = { version = "1.0.228", features = ["derive"] }
 tokio = "1.52.3"
+tower-http = { version = "0.7.0", features = ["fs", "trace"] }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }

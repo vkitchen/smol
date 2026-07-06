@@ -9,16 +9,33 @@ use axum::{
     routing::get,
 };
 use serde::Deserialize;
+use tower_http::{services::ServeDir, trace::TraceLayer};
+use tracing_subscriber::EnvFilter;
+
+const LOG_LEVEL: &'static str = if cfg!(debug_assertions) {
+    "tower_http=trace,axum=debug"
+} else {
+    "info"
+};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(LOG_LEVEL)),
+        )
+        .init();
+
     let app = Router::new()
         .route("/", get(index_handler))
-        .route("/search", get(search_handler));
+        .route("/search", get(search_handler))
+        .nest_service("/static", ServeDir::new("static"))
+        .layer(TraceLayer::new_for_http());
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .unwrap();
+
     axum::serve(listener, app).await.unwrap();
 }
 
@@ -30,7 +47,9 @@ struct IndexTemplate {
 
 async fn index_handler() -> impl IntoResponse {
     let info_result = cocomel::info().unwrap();
-    let template = IndexTemplate { total_docs: info_result.total_docs };
+    let template = IndexTemplate {
+        total_docs: info_result.total_docs,
+    };
     HtmlTemplate(template)
 }
 
