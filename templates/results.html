@@ -8,7 +8,7 @@
   </head>
   <body>
     <header>
-      <a href="/">smol</a>
+      <h1><a href="/">smol</a></h1>
       <form class="search" action="/search" method="get">
         <input type="text" name="q" placeholder="Search..." value="{{ query }}">
         <input type="submit" value="Search">
@@ -18,7 +18,7 @@
       {% if total_results == 0 %}
         <p>No results</p>
       {% else %}
-        <h4>Showing {{ (page - 1) * 10 + 1 }} - {{ (page - 1) * 10 + no_results }} of {{ total_results }}</h4>
+        <h4>Showing results {{ (page - 1) * 10 + 1 }} - {{ (page - 1) * 10 + no_results }} of {{ total_results }}</h4>
         {% for res in results %}
           <p><a href="{{ res.docid }}">{{ res.docid }}</a></p>
           <p>{{ res.title }}</p>
